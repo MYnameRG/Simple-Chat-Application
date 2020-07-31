@@ -11,23 +11,45 @@ const io = socketIO(server);
 
 app.use(express.static(publicPath));
 
+//console.log(path.join(__dirname,'/../public'));
+
+// app.use('/',(req,res,next)=>{
+//     res.sendFile(path.join(__dirname , '/../public/chat_join.html'));
+//     next();
+// });
+
+app.get('/',(req, res) => {
+    res.sendFile(path.join(__dirname,'/../public') + '/join.html');
+});
+
+// app.get('/index.html',(req, res) => {
+//     res.sendFile(path.join(__dirname,'/../public') + '/index.html');
+// });
+
 io.on('connect', (socket) => {
     console.log('User connected...');
 
     socket.on('createMessage', (message, callback) => {
-        console.log('Message:', message);
-        callback('This is server here.');
+        //console.log('Message:', message);
+        io.emit('newMessage', {
+            from: message.from,
+            text: message.text,
+            Date:  new Date().getTime()     
+        });
     });
 
-    /*io.emit('newMessage', {
-    from: 'Admin',
-    text: 'Hello User',
-    Date:  new Date().getTime()     
-    });*/
+    socket.on('join', (params, callback) => {
+        if(!(typeof params.name === 'string' && params.name.trim().length > 0) || !(typeof params.room === 'string' && params.room.trim().length > 0))
+        {
+            callback('Name or room is required!!!');
+        }
 
-    socket.emit('newMessage', generateMessage('Admin', 'Welcome to chat app!'));
+        socket.join(params.room);
 
-    socket.broadcast.emit('newMessage', generateMessage('Admin', 'New User Joined!'));
+        socket.emit('newMessage', generateMessage('Admin', `Welcome to the ${params.room} room!`));
+
+        socket.broadcast.to(params.room).emit('newMessage', generateMessage('Admin', `${params.name} Joined!`));
+    });
 
     socket.on('disconnect', () => {
         console.log('User disconnected...');

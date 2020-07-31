@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./css/style.css" />
+    <title>Chat Application</title>
+</head>
+<body class="chat">
+    <div class="chat__sidebar">
+        <h3>People</h3>
+        <div id="users"></div>
+      </div>
+  
+      <div class="chat__main">
+        <ol id="messages" class="chat__messages"></ol>
+  
+        <div class="chat__footer">
+          <form id="message-form">
+            <input name="message" type="text" placeholder="Message" autofocus autocomplete="off"/>
+            <button id="submit-btn">Send</button>
+          </form>
+        </div>
+      </div>
+  
+    <!-- <form id="message-form">
+        <input type="text" name="message" placeholder="Enter Your Message..">
+        <button type="submit" id="submit-btn">Submit</button>
+    </form> -->
+
+    <script id="message-template" type="text/template">
+        <li class="message" style="list-style-type: none;">
+          <div class="message__title">
+                <h4>{{from}}</h4>
+                <span>{{createdAt}}</span>
+            </div>
+            <div class="message__body">
+                <p>{{text}}</p>
+            </div>
+        </li>
+    </script>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript" src="./js/chat.js"></script>
+    <script type="text/javascript" src="./libs/moment.js"></script>
+    <script type="text/javascript" src="./libs/mustache.js"></script>
+</body>
+</html>
