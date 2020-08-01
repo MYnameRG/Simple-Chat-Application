@@ -39,6 +39,18 @@ socket.on('connect', () => {
     console.log('Got it', message);
 });*/ 
 
+socket.on('updateUsers', (users) => {
+    const ol = document.createElement('ol');
+    users.forEach((user) => {
+        const li = document.createElement('li');
+        li.innerHTML = user;
+        ol.appendChild(li);
+    });
+    const list = document.querySelector('#users');
+    list.innerHTML = '';
+    list.appendChild(ol);
+});
+
 socket.on('newMessage', (message) => {
     //console.log('Message:', message);
 

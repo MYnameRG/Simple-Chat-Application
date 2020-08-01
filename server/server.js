@@ -4,6 +4,8 @@ const app = express();
 const path = require('path');
 const socketIO = require('socket.io');
 const generateMessage = require('./utils/message');
+const Users = require('./utils/users');
+const users = new Users();
 
 const server = require('http').createServer(app);
 const publicPath = path.join(__dirname, '/../public');
@@ -19,7 +21,7 @@ app.use(express.static(publicPath));
 // });
 
 app.get('/',(req, res) => {
-    res.sendFile(path.join(__dirname,'/../public') + '/join.html');
+    return res.sendFile(path.join(__dirname,'/../public') + '/join.html');
 });
 
 // app.get('/index.html',(req, res) => {
@@ -41,18 +43,35 @@ io.on('connect', (socket) => {
     socket.on('join', (params, callback) => {
         if(!(typeof params.name === 'string' && params.name.trim().length > 0) || !(typeof params.room === 'string' && params.room.trim().length > 0))
         {
-            callback('Name or room is required!!!');
+            return callback('Name or room is required!!!');
         }
 
         socket.join(params.room);
+        users.removeUser(socket.id);
+        users.addUser(socket.id, params.name, params.room);
+
+        //console.log(users);
+        //console.log(users.getUserList(params.room))
+        
+        //The message is broadcasted to everyone including you
+        io.to(params.room).emit('updateUsers', users.getUserList(params.room));
 
         socket.emit('newMessage', generateMessage('Admin', `Welcome to the ${params.room} room!`));
 
-        socket.broadcast.to(params.room).emit('newMessage', generateMessage('Admin', `${params.name} Joined!`));
+        //The message is broadcasted to everyone except you
+        socket.broadcast.to(params.room).emit('newMessage', generateMessage('Admin', `${params.name} Joined!!`));
     });
 
     socket.on('disconnect', () => {
         console.log('User disconnected...');
+
+        //After every refresh moment, user disconnected from the server --Remember
+        const user = users.removeUser(socket.id);
+
+        if(user){
+            io.to(user.room).emit('updateUsers', users.getUserList(user.room));
+            io.to(user.room).emit('newMessage', generateMessage('Admin', `${user.name} has left from the ${user.room}!!`));
+        }
     });
 });
 
